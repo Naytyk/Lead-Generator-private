@@ -1,4 +1,4 @@
-function setMonacoValue(text) {
+function setMonacoValue(text, clickSelector) {
   const maxWaitMs = 15000;
   const intervalMs = 200;
   const startTime = Date.now();
@@ -10,6 +10,15 @@ function setMonacoValue(text) {
       clearInterval(timer);
       model.setValue('');
       model.setValue(text);
+      if (clickSelector) {
+        const clickTimer = setInterval(() => {
+          const button = document.querySelector(clickSelector);
+          if (button) {
+            clearInterval(clickTimer);
+            button.click();
+          }
+        }, intervalMs);
+      }
       return;
     }
     if (Date.now() - startTime >= maxWaitMs) {
@@ -31,6 +40,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     target: { tabId: sender.tab.id },
     world: 'MAIN',
     func: setMonacoValue,
-    args: [message.text],
+    args: [message.text, message.clickSelector],
   });
 });

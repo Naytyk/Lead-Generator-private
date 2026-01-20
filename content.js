@@ -73,7 +73,11 @@ function typeHelloThereWhenReady() {
 }
 
 function requestMonacoValueSet(text) {
-  chrome.runtime.sendMessage({ type: 'SET_MONACO_VALUE', text });
+  chrome.runtime.sendMessage({
+    type: 'SET_MONACO_VALUE',
+    text,
+    clickSelector: 'button[data-test="actor-run-button"]',
+  });
 }
 
 function isEditorReady(input) {
