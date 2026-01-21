@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lead Dispatcher</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+    .config-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    input, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    button { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #218838; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
+    th { background-color: #007bff; color: white; }
+  </style>
+</head>
+<body>
+  <h2>Lead Dispatch Center</h2>
+  
+  <div class="config-section">
+    <div class="input-group" style="flex: 1;">
+      <label>Apps Script Webhook URL:</label>
+      <input type="text" id="webhookUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="input-group">
+      <label>Start Date:</label>
+      <input type="date" id="startDate">
+    </div>
+    <div class="input-group">
+      <label>Follow-up Gap (Days):</label>
+      <input type="number" id="dayGap" value="3" min="1" style="width: 60px;">
+    </div>
+    <button id="sendToSheetBtn">Push to Google Sheet</button>
+  </div>
+
+  <table id="resultsTable">
+    <thead>
+      <tr><th>POC</th><th>FIRM</th><th>Recipient</th></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <script src="results.js"></script>
+</body>
+</html>
