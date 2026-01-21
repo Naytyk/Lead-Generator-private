@@ -44,12 +44,8 @@ function typeHelloThereWhenReady() {
       clearInterval(timer);
       input.focus();
       const leadParam = {
-        company_domain: [
-          "https://www.razorpay.com"
-        ],
-        email_status: [
-          "validated"
-        ],
+        company_domain: ["https://www.staffcloud.net"],
+        email_status: ["validated"],
         fetch_count: 30,
         file_name: "Razorpay extension leads",
         seniority_level: [
