@@ -23,43 +23,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('sendToSheetBtn').addEventListener('click', async () => {
   const webhook = document.getElementById('webhookUrl').value;
-  const startStr = document.getElementById('startDate').value;
-  const gap = parseInt(document.getElementById('dayGap').value);
   
-  if (!webhook || !startStr) return alert("Fill URL and Date");
+  if (!webhook) return alert("Please enter the Webhook URL");
   chrome.storage.local.set({ webhookUrl: webhook });
 
   const result = await chrome.storage.local.get(['lastExtractedLeads']);
-  const leads = JSON.parse(result.lastExtractedLeads).filter(l => l.email);
-  
-  // --- SCHEDULING LOGIC: 80 PER DAY ---
-  const formattedLeads = leads.map((item, index) => {
-    const dayOffset = Math.floor(index / 80); // Increments every 80 leads
-    const scheduledDate = new Date(startStr);
-    scheduledDate.setDate(scheduledDate.getDate() + dayOffset);
+  // Filter for valid emails
+  const leads = JSON.parse(result.lastExtractedLeads || "[]").filter(l => l.email);
 
-    const formatDate = (date, daysToAdd) => {
-      const d = new Date(date);
-      d.setDate(d.getDate() + daysToAdd);
-      return d.toISOString().split('T')[0];
-    };
+  if (leads.length === 0) return alert("No leads with emails found to push.");
 
-    return {
+  // --- SIMPLIFIED: JUST SEND DATA, NO DATES ---
+  const formattedLeads = leads.map(item => ({
       poc: `${item.first_name || ''} ${item.last_name || ''}`.trim(),
       firm: item.company_name || 'N/A',
-      recipient: item.email,
-      scheduledDate: scheduledDate.toISOString().split('T')[0],
-      f1Date: formatDate(scheduledDate, gap),
-      f2Date: formatDate(scheduledDate, gap * 2),
-      f3Date: formatDate(scheduledDate, gap * 3)
-    };
-  });
+      recipient: item.email
+  }));
 
   // Push to Apps Script
   fetch(webhook, {
     method: 'POST',
-    mode: 'no-cors', // Apps Script requires no-cors for simple redirects
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ leads: formattedLeads })
-  }).then(() => alert(`Successfully queued ${leads.length} leads!`))
-    .catch(err => alert("Error: " + err));
+  })
+  .then(() => alert(`Successfully queued ${leads.length} leads!`))
+  .catch(err => alert("Error: " + err));
 });
