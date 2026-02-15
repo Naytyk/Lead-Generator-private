@@ -35,6 +35,7 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
   // --- SIMPLIFIED: JUST SEND DATA, NO DATES ---
   const formattedLeads = leads.map(item => ({
       poc: `${item.first_name || ''} ${item.last_name || ''}`.trim(),
+      first_name: item.first_name || '',
       firm: item.company_name || 'N/A',
       recipient: item.email
   }));
