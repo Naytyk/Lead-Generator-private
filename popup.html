@@ -1,21 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Apify Opener</title>
   <style>
-    body { width: 300px; padding: 15px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px; }
-    textarea { width: 100%; height: 80px; font-size: 12px; resize: none; }
-    button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
-    #configBtn { background-color: #007bff; color: white; }
-    #extractBtn { background-color: #28a745; color: white; }
-    label { font-size: 12px; font-weight: bold; color: #555; }
+    :root {
+      --primary: #007bff;
+      --success: #28a745;
+      --bg: #ffffff;
+      --text: #333;
+      --border: #e1e4e8;
+    }
+    body { 
+      width: 300px; 
+      padding: 20px; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+    }
+    h3 { margin: 0 0 15px 0; font-size: 16px; font-weight: 600; }
+    .input-group { margin-bottom: 15px; }
+    label { 
+      display: block; 
+      font-size: 12px; 
+      font-weight: 500; 
+      margin-bottom: 6px; 
+      color: #555;
+    }
+    textarea { 
+      width: 100%; 
+      height: 110px; 
+      padding: 10px;
+      border: 1px solid var(--border); 
+      border-radius: 6px;
+      font-size: 13px; 
+      resize: none; 
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--primary); }
+    .button-stack { display: flex; flex-direction: column; gap: 8px; }
+    button { 
+      padding: 10px; 
+      cursor: pointer; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: 500; 
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    #configBtn { background-color: var(--primary); color: white; }
+    #extractBtn { background-color: var(--success); color: white; }
+    button:hover { filter: brightness(95%); }
+    
+    .footer-note {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+    }
+    .error-text { 
+      color: #d73a49; 
+      display: none; 
+      font-size: 11px; 
+      margin-top: 5px; 
+      text-align: left;
+    }
   </style>
 </head>
 <body>
-  <label>Paste Domains (one per line):</label>
-  <textarea id="domainInput" placeholder="https://example.com&#10;https://another.com"></textarea>
+  <h3>Lead Generation</h3>
+
+  <div class="input-group">
+    <label>Company Domains</label>
+    <textarea id="domainInput" placeholder="Enter domains (one per line)"></textarea>
+    <div id="limitMsg" class="error-text">Limit exceeded. Maximum 10 companies at once.</div>
+  </div>
   
-  <button id="configBtn">Start Extraction</button>
-  <button id="extractBtn">View Scraped Table</button>
+  <div class="button-stack">
+    <button id="configBtn">Start Extraction</button>
+    <button id="extractBtn">View Results Table</button>
+  </div>
+
+  <div class="footer-note">
+    Optimal performance: 10 companies max at once.
+  </div>
   
   <script src="popup.js"></script>
 </body>
