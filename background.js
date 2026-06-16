@@ -63,6 +63,28 @@ async function getMonacoResults() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Dispatch leads to the SHARE master sheet web app. Runs in the service worker,
+  // where host_permissions allow cross-origin reads of the JSON response.
+  if (message.type === 'PUSH_LEADS') {
+    (async () => {
+      try {
+        const res = await fetch(message.webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(message.payload),
+          redirect: 'follow'
+        });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = { status: 'error', message: text.slice(0, 200) }; }
+        sendResponse({ ok: res.ok, data });
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message });
+      }
+    })();
+    return true; // keep the message channel open for the async response
+  }
+
   if (message.type === 'OPEN_RESULTS_TAB') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) return;

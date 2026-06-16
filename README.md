@@ -1,25 +1,81 @@
-# Apify Console Opener Extension
+# SHARE Lead Generator (Chrome extension)
 
-A Chrome extension that opens the Apify actor input page and sets up for further interaction.
+Scrapes B2B leads via an Apify actor and dispatches them to the **SHARE master sheet**,
+tagged with an owner `userId` so the master sheet routes each lead to the right
+teammate's daughter sheet.
 
-## Installation
+## How it fits the SHARE system
 
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode" in the top right.
-3. Click "Load unpacked" and select the folder containing these files (`c:\Users\krish\Desktop\CS\leadAutomater`).
-4. The extension should now be loaded.
+```
+Apify actor ──scrape──► extension ──POST { secret, userId, leads }──► Master Sheet doPost
+                                                                          │ routes by userId
+                                                                          ▼
+                                                                  Daughter "Emails" tab
+```
+
+The POST payload matches what `AppScripts/master` expects:
+
+```json
+{
+  "secret": "<master shared secret>",
+  "userId": "ABCDEF",
+  "leads": [
+    { "poc": "Jane Doe", "first_name": "Jane", "firm": "Acme",
+      "recipient": "jane@acme.com", "poc_role": "Head of BD" }
+  ]
+}
+```
+
+`userId` is sent once at the batch level (every lead in the batch belongs to that
+teammate). The master router reads `lead.userId || body.userId`.
+
+## Install (dev)
+
+1. `chrome://extensions/` → enable **Developer mode**.
+2. **Load unpacked** → select this folder (or `dist/unpacked` after a build).
 
 ## Usage
 
-- Click the extension icon in the toolbar to open the popup.
-- Click the "Open Apify Input Page" button to open the specified URL in a new tab.
-- The content script will load on the page, allowing for DOM interactions.
+1. Click the extension icon → paste target **domains** (one per line) → **Start Extraction**.
+   The Apify input page opens and runs automatically.
+2. When the run finishes, click **View Scraped Table** to open the dispatch page.
+3. On the dispatch page fill in, once (they're remembered):
+   - **Master Web App URL** — the `…/exec` URL of your deployed master sheet web app.
+   - **User ID** — the 6-letter id of the teammate who should own these leads.
+   - **Shared Secret** — the secret you set via *SHARE Master → Setup Master*.
+4. Click **Push to Master Sheet**. You'll see real feedback, e.g.
+   `Done — routed 100/100`, or a clear error if the secret is wrong or some leads
+   couldn't be routed (e.g. the userId isn't registered yet).
 
-## Further Interaction
+## Build / release
 
-The `content.js` script is injected into the page and provides functions like `fillInput(selector, value)` to manipulate form elements. You can extend this script to add more interactions as needed.
+```bash
+bash build.sh          # reads version from manifest.json
+```
+Produces:
+- `dist/unpacked/` — load-unpacked for testing.
+- `dist/SHARE-Lead-Generator-v<version>.zip` — upload to the Chrome Web Store.
+
+Bump `"version"` in `manifest.json` before building. See `CHANGELOG.md` and the git
+tags (`vX.Y.Z`) for release history.
+
+## Files
+
+| File | Role |
+|---|---|
+| `manifest.json` | MV3 manifest, permissions, host permissions |
+| `popup.html/js` | domain entry + triggers extraction |
+| `content.js` | drives the Apify Monaco editor on the input page |
+| `background.js` | extracts results, and POSTs leads to the master web app |
+| `results.html/js` | dispatch UI (URL / userId / secret) + live status |
+| `build.sh` | packaging script |
 
 ## Troubleshooting
 
-- Ensure the manifest.json is valid.
-- Check the console for any errors when loading the extension or opening the page.
+- **"Rejected: shared secret does not match"** — the secret here differs from the one
+  set on the master sheet.
+- **`unrouted` > 0** — those leads' `userId` has no registered sheet yet; the teammate
+  must finish `Run Full Setup` so their sheet is registered.
+- **No response / network error** — confirm the web app URL ends in `/exec` and is
+  deployed with *Access: Anyone*; both `script.google.com` and `script.googleusercontent.com`
+  are in `host_permissions`.
