@@ -18,12 +18,22 @@
   <h2>Lead Dispatch Center</h2>
   
   <div class="config-section">
-    <div class="input-group" style="flex: 1;">
-      <label>Apps Script Webhook URL:</label>
+    <div class="input-group" style="flex: 2; min-width: 280px;">
+      <label>Master Web App URL:</label>
       <input type="text" id="webhookUrl" placeholder="https://script.google.com/macros/s/.../exec">
     </div>
-    <button id="sendToSheetBtn">Push to Google Sheet</button>
+    <div class="input-group" style="flex: 1; min-width: 120px;">
+      <label>User ID (owner):</label>
+      <input type="text" id="userId" placeholder="ABCDEF" maxlength="6" style="text-transform: uppercase;">
+    </div>
+    <div class="input-group" style="flex: 1; min-width: 160px;">
+      <label>Shared Secret:</label>
+      <input type="password" id="secret" placeholder="master shared secret">
+    </div>
+    <button id="sendToSheetBtn">Push to Master Sheet</button>
   </div>
+
+  <div id="status" style="margin-bottom: 16px; font-weight: bold;"></div>
 
   <table id="resultsTable">
     <thead>
