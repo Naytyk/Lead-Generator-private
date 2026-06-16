@@ -4,19 +4,43 @@
   <style>
     body { width: 300px; padding: 15px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px; }
     textarea { width: 100%; height: 80px; font-size: 12px; resize: none; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+    #loginBtn { background-color: #007bff; color: white; }
     #configBtn { background-color: #007bff; color: white; }
     #extractBtn { background-color: #28a745; color: white; }
     label { font-size: 12px; font-weight: bold; color: #555; }
+    .error { color: #dc3545; font-size: 12px; min-height: 14px; }
+    .userbar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .userbar a { color: #dc3545; text-decoration: none; font-weight: bold; }
+    h3 { margin: 0 0 4px; }
   </style>
 </head>
 <body>
-  <label>Paste Domains (one per line):</label>
-  <textarea id="domainInput" placeholder="https://example.com&#10;https://another.com"></textarea>
-  
-  <button id="configBtn">Start Extraction</button>
-  <button id="extractBtn">View Scraped Table</button>
-  
+  <!-- LOGIN VIEW -->
+  <div id="loginView" style="display:none; flex-direction: column; gap: 10px;">
+    <h3>SHARE Login</h3>
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="from your onboarding email">
+    <label>Password</label>
+    <input type="password" id="loginPassword" placeholder="from your onboarding email">
+    <button id="loginBtn">Log in</button>
+    <div id="loginError" class="error"></div>
+  </div>
+
+  <!-- MAIN VIEW (only after login) -->
+  <div id="mainView" style="display:none; flex-direction: column; gap: 10px;">
+    <div class="userbar">
+      <span id="whoami"></span>
+      <a href="#" id="logoutBtn">Log out</a>
+    </div>
+    <label>Paste Domains (one per line):</label>
+    <textarea id="domainInput" placeholder="https://example.com&#10;https://another.com"></textarea>
+    <button id="configBtn">Start Extraction</button>
+    <button id="extractBtn">View Scraped Table</button>
+    <div id="gateMsg" class="error"></div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

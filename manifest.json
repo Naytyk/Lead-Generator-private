@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "SHARE Lead Generator",
-  "version": "3.0.0",
-  "description": "Scrapes leads via Apify and dispatches them to the SHARE master sheet, tagged with a userId for routing.",
+  "version": "3.1.0",
+  "description": "Scrapes leads via Apify and dispatches them to the SHARE master sheet. Requires SHARE login; blocks deactivated users.",
   "permissions": ["tabs", "scripting", "storage"],
   "host_permissions": [
     "https://console.apify.com/actors/IoSHqwTR9YGhzccez/input*",
     "https://script.google.com/*",
-    "https://script.googleusercontent.com/*"
+    "https://script.googleusercontent.com/*",
+    "https://email-monitoringbackend.vercel.app/*"
   ],
   "action": {
     "default_popup": "popup.html"

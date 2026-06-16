@@ -3,6 +3,15 @@
 All notable changes to the SHARE Lead Generator extension.
 This project uses [Semantic Versioning](https://semver.org/).
 
+## [3.1.0] - 2026-06-17
+### Added
+- **Login gate**: the popup now requires SHARE login (email + password from the
+  onboarding mail) via `POST /api/login` before any extraction or dispatch.
+- **Activation pre-run check**: dispatch first calls `POST /api/extension/use`, so a
+  **deactivated user is blocked** (and usage is counted). The popup also re-checks
+  activation on open via `GET /api/script/status/:userId`.
+- userId is now **auto-resolved from the login** (read-only) — operators never type it.
+
 ## [3.0.0] - 2026-06-17
 First published release of the SHARE-integrated Lead Generator (fresh baseline).
 ### Added
