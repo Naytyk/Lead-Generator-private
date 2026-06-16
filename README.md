@@ -36,13 +36,17 @@ teammate). The master router reads `lead.userId || body.userId`.
 
 ## Usage
 
-1. Click the extension icon → paste target **domains** (one per line) → **Start Extraction**.
+0. Click the extension icon → **log in** with the email + password from your SHARE
+   onboarding email. Deactivated accounts can't log in or dispatch. Your userId is
+   resolved automatically from the login.
+1. Paste target **domains** (one per line) → **Start Extraction**.
    The Apify input page opens and runs automatically.
 2. When the run finishes, click **View Scraped Table** to open the dispatch page.
 3. On the dispatch page fill in, once (they're remembered):
-   - **Master Web App URL** — the `…/exec` URL of your deployed master sheet web app.
-   - **User ID** — the 6-letter id of the teammate who should own these leads.
+   - **Master Web App URL** — the `…/exec` URL of your deployed master sheet web app
+     (pre-filled from the hardcoded default).
    - **Shared Secret** — the secret you set via *SHARE Master → Setup Master*.
+   - **User ID** is auto-filled from your login (read-only).
 4. Click **Push to Master Sheet**. You'll see real feedback, e.g.
    `Done — routed 100/100`, or a clear error if the secret is wrong or some leads
    couldn't be routed (e.g. the userId isn't registered yet).
