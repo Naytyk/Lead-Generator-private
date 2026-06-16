@@ -7,7 +7,7 @@ teammate's daughter sheet.
 ## How it fits the SHARE system
 
 ```
-Apify actor ──scrape──► extension ──POST { secret, userId, leads }──► Master Sheet doPost
+Apify actor ──scrape──► extension ──POST { userId, leads }──► Master Sheet doPost
                                                                           │ routes by userId
                                                                           ▼
                                                                   Daughter "Emails" tab
@@ -17,7 +17,6 @@ The POST payload matches what `AppScripts/master` expects:
 
 ```json
 {
-  "secret": "<master shared secret>",
   "userId": "ABCDEF",
   "leads": [
     { "poc": "Jane Doe", "first_name": "Jane", "firm": "Acme",
@@ -45,11 +44,10 @@ teammate). The master router reads `lead.userId || body.userId`.
 3. On the dispatch page fill in, once (they're remembered):
    - **Master Web App URL** — the `…/exec` URL of your deployed master sheet web app
      (pre-filled from the hardcoded default).
-   - **Shared Secret** — the secret you set via *SHARE Master → Setup Master*.
    - **User ID** is auto-filled from your login (read-only).
 4. Click **Push to Master Sheet**. You'll see real feedback, e.g.
-   `Done — routed 100/100`, or a clear error if the secret is wrong or some leads
-   couldn't be routed (e.g. the userId isn't registered yet).
+   `Done — routed 100/100`, or a clear error if some leads couldn't be routed
+   (e.g. the userId isn't registered yet).
 
 ## Build / release
 
@@ -71,13 +69,11 @@ tags (`vX.Y.Z`) for release history.
 | `popup.html/js` | domain entry + triggers extraction |
 | `content.js` | drives the Apify Monaco editor on the input page |
 | `background.js` | extracts results, and POSTs leads to the master web app |
-| `results.html/js` | dispatch UI (URL / userId / secret) + live status |
+| `results.html/js` | dispatch UI (URL / auto-filled userId) + live status |
 | `build.sh` | packaging script |
 
 ## Troubleshooting
 
-- **"Rejected: shared secret does not match"** — the secret here differs from the one
-  set on the master sheet.
 - **`unrouted` > 0** — those leads' `userId` has no registered sheet yet; the teammate
   must finish `Run Full Setup` so their sheet is registered.
 - **No response / network error** — confirm the web app URL ends in `/exec` and is

@@ -3,6 +3,12 @@
 All notable changes to the SHARE Lead Generator extension.
 This project uses [Semantic Versioning](https://semver.org/).
 
+## [3.2.0] - 2026-06-17
+### Changed
+- **Removed the shared secret.** Dispatch now authenticates via the unguessable
+  master web-app URL + the logged-in `userId`; payload is `{ userId, leads }`.
+- Dropped the Shared Secret field from the dispatch UI.
+
 ## [3.1.0] - 2026-06-17
 ### Added
 - **Login gate**: the popup now requires SHARE login (email + password from the
