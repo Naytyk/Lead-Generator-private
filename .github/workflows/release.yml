@@ -1,0 +1,25 @@
+name: Release
+
+# Builds the extension and publishes a GitHub Release whenever a vX.Y.Z tag is pushed.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # required to create the release
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build extension package
+        run: bash build.sh
+
+      - name: Publish release with packaged zip
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/SHARE-Lead-Generator-v*.zip
+          generate_release_notes: true
