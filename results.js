@@ -1,6 +1,6 @@
 // Hardcoded default master web app URL. Safe to commit (it's not a secret).
 // If you ever create a NEW deployment (vs. updating the existing one), replace this.
-const MASTER_WEBHOOK_URL = 'https://script.google.com/macros/s/REPLACE_WITH_EXEC_URL/exec';
+const MASTER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxmS4ktGs9UWUNuJGMEa7ozq07QYyZEkFpAlAnZ3Ats6tn0lfTRUCBkamAeIWe4yKP4/exec';
 
 function showStatus(msg, color) {
   const el = document.getElementById('status');
