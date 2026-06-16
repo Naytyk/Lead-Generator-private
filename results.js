@@ -30,10 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     uid.readOnly = true;
   }
 
-  // Restore saved config (webhook + secret); userId is from AUTH.
-  chrome.storage.local.get(['webhookUrl', 'leadSecret'], (res) => {
+  // Restore saved config (webhook); userId is from AUTH.
+  chrome.storage.local.get(['webhookUrl'], (res) => {
     document.getElementById('webhookUrl').value = res.webhookUrl || MASTER_WEBHOOK_URL;
-    if (res.leadSecret) document.getElementById('secret').value = res.leadSecret;
   });
 
   chrome.storage.local.get(['lastExtractedLeads'], (result) => {
@@ -55,11 +54,9 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
   if (!AUTH) return showStatus('Log in via the extension popup first.', '#dc3545');
 
   const webhook = document.getElementById('webhookUrl').value.trim();
-  const secret = document.getElementById('secret').value.trim();
   if (!webhook) return showStatus('Enter the Master Web App URL.', '#dc3545');
-  if (!secret) return showStatus('Enter the shared secret.', '#dc3545');
 
-  chrome.storage.local.set({ webhookUrl: webhook, leadSecret: secret });
+  chrome.storage.local.set({ webhookUrl: webhook });
 
   // PRE-RUN GATE: confirm the user is still active (and within usage limits)
   // before doing anything. Blocks deactivated accounts; counts this as a use.
@@ -91,7 +88,7 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
     poc_role: item.job_title || ''
   }));
 
-  const payload = { secret, userId: AUTH.userId, leads: formattedLeads };
+  const payload = { userId: AUTH.userId, leads: formattedLeads };
   showStatus(`Dispatching ${leads.length} lead(s)...`, '#555');
 
   chrome.runtime.sendMessage({ type: 'PUSH_LEADS', webhook, payload }, (resp) => {
@@ -104,8 +101,6 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
     const d = resp.data || {};
     if (d.status === 'success') {
       showStatus(`Done — routed ${d.routed}/${d.total}${d.unrouted ? `, ${d.unrouted} unrouted` : ''}.`, '#218838');
-    } else if (d.status === 'error' && /unauthorized/i.test(d.message || '')) {
-      showStatus('Rejected: shared secret does not match the master sheet.', '#dc3545');
     } else {
       showStatus('Server said: ' + (d.message || JSON.stringify(d)), '#dc3545');
     }
