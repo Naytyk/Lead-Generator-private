@@ -1,13 +1,14 @@
 name: Release
 
-# Builds the extension and publishes a GitHub Release whenever a vX.Y.Z tag is pushed.
+# On every push to main: build the extension and publish a GitHub Release tagged
+# with the version from manifest.json. Bump the version to cut a NEW release;
+# pushing without a bump just refreshes the existing release's zip (idempotent).
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
 
 permissions:
-  contents: write   # required to create the release
+  contents: write   # required to create tags + releases
 
 jobs:
   build-and-release:
@@ -15,11 +16,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read version from manifest
+        id: ver
+        run: echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Build extension package
         run: bash build.sh
 
       - name: Publish release with packaged zip
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
           files: dist/SHARE-Lead-Generator-v*.zip
           generate_release_notes: true
