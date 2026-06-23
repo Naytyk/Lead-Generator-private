@@ -1,5 +1,25 @@
 const BACKEND_URL = 'https://email-monitoringbackend.vercel.app';
 
+// Fallback recipe — used ONLY if the backend is unreachable, so a run never dies
+// on a network blip. Source of truth is GET /api/extension/lead-params.
+const DEFAULT_LEAD_PARAMS = {
+  email_status: ['validated'],
+  fetch_count: 100,
+  file_name: 'Dynamic Lead Export',
+  seniority_level: ['c_suite', 'founder', 'owner', 'director', 'vp', 'head'],
+  contact_location: ['india']
+};
+
+async function fetchLeadParams() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/extension/lead-params`);
+    if (!res.ok) throw new Error('bad status');
+    return await res.json();
+  } catch {
+    return DEFAULT_LEAD_PARAMS;
+  }
+}
+
 const $ = (id) => document.getElementById(id);
 
 function renderLogin(errorMsg) {
@@ -74,22 +94,22 @@ $('logoutBtn').addEventListener('click', async (e) => {
 });
 
 // ----- EXTRACTION (unchanged logic, only reachable when logged in) -----
-$('configBtn').addEventListener('click', () => {
+$('configBtn').addEventListener('click', async () => {
   const rawInput = $('domainInput').value;
   const domains = rawInput.split('\n').map(d => d.trim()).filter(d => d !== '');
   if (domains.length === 0) { $('gateMsg').textContent = 'Paste at least one domain.'; return; }
 
-  const dynamicLeadParam = {
-    company_domain: domains,
-    email_status: ['validated'],
-    fetch_count: 100,
-    file_name: 'Dynamic Lead Export',
-    seniority_level: ['c_suite', 'founder', 'owner', 'director', 'vp', 'head'],
-    contact_location: ['india']
-  };
+  // Pull the targeting recipe from the backend (falls back to a bundled default),
+  // then add the user's domains at runtime.
+  $('gateMsg').textContent = 'Preparing run…';
+  const recipe = await fetchLeadParams();
+  const dynamicLeadParam = { ...recipe, company_domain: domains };
 
-  chrome.storage.local.set({ activeLeadParams: dynamicLeadParam }, () => {
-    chrome.tabs.create({ url: 'https://console.apify.com/actors/IoSHqwTR9YGhzccez/input' });
+  // autoExtract: tells content.js to poll the run, then auto-dispatch the leads.
+  // The run happens in a hidden off-screen window; results/success open on-screen.
+  chrome.storage.local.set({ activeLeadParams: dynamicLeadParam, autoExtract: true }, () => {
+    chrome.runtime.sendMessage({ type: 'START_OFFSCREEN_RUN' });
+    $('gateMsg').textContent = 'Running in the background — results will open automatically.';
   });
 });
 
