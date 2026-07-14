@@ -7,7 +7,7 @@ set -e
 
 DIST_DIR="dist"
 UNZIPPED_DIR="$DIST_DIR/unpacked"
-FILES=("manifest.json" "popup.html" "popup.js" "content.js" "background.js" "results.html" "results.js")
+FILES=("manifest.json" "popup.html" "popup.js" "content.js" "background.js" "results.html" "results.js" "success.html" "success.js")
 
 VERSION=$(grep -o '"version"[^,]*' manifest.json | head -1 | grep -o '[0-9][0-9.]*')
 echo "🚀 Building SHARE Lead Generator v$VERSION ..."
