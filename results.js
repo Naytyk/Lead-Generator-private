@@ -1,5 +1,9 @@
 const BACKEND_URL = 'https://email-monitoringbackend.vercel.app';
 
+// Hardcoded default master web app URL. Safe to commit (it's not a secret).
+// If you ever create a NEW deployment (vs. updating the existing one), replace this.
+const MASTER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxmS4ktGs9UWUNuJGMEa7ozq07QYyZEkFpAlAnZ3Ats6tn0lfTRUCBkamAeIWe4yKP4/exec';
+
 let AUTH = null;
 
 function showStatus(msg, color) {
