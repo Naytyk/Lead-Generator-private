@@ -8,6 +8,7 @@ set -e
 DIST_DIR="dist"
 UNZIPPED_DIR="$DIST_DIR/unpacked"
 FILES=("manifest.json" "popup.html" "popup.js" "content.js" "background.js" "results.html" "results.js" "success.html" "success.js")
+ASSETS=("assets/share-logo.png" "assets/share-wordmark.png" "assets/icon16.png" "assets/icon32.png" "assets/icon48.png" "assets/icon128.png")
 
 VERSION=$(grep -o '"version"[^,]*' manifest.json | head -1 | grep -o '[0-9][0-9.]*')
 echo "🚀 Building SHARE Lead Generator v$VERSION ..."
@@ -21,6 +22,16 @@ for file in "${FILES[@]}"; do
     echo "  ✔ $file"
   else
     echo "  ✖ MISSING: $file"; exit 1
+  fi
+done
+
+mkdir -p "$UNZIPPED_DIR/assets"
+for asset in "${ASSETS[@]}"; do
+  if [ -f "$asset" ]; then
+    cp "$asset" "$UNZIPPED_DIR/assets/"
+    echo "  ✔ $asset"
+  else
+    echo "  ✖ MISSING: $asset"; exit 1
   fi
 done
 

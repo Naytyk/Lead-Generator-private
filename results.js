@@ -6,10 +6,18 @@ const MASTER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxmS4ktGs9UW
 
 let AUTH = null;
 
-function showStatus(msg, color) {
+// Dark-theme status colours, kept as named constants so a copy never drifts
+// back to the light-theme hexes the page no longer uses.
+const TONE = { info: '#9aa0ad', ok: '#00bf6f', bad: '#f0553d' };
+
+function showStatus(msg, tone) {
   const el = document.getElementById('status');
-  el.style.color = color || '#333';
+  el.style.color = tone || TONE.info;
   el.textContent = msg;
+}
+
+function setLeadCount(n) {
+  document.getElementById('leadCount').textContent = n;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -21,8 +29,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!shareAuth || !shareAuth.token) {
     sendBtn.disabled = true;
     document.getElementById('userId').value = '';
-    document.getElementById('userId').placeholder = 'log in via popup';
-    showStatus('You are not logged in. Open the extension popup and log in first.', '#dc3545');
+    document.getElementById('userId').placeholder = 'log in';
+    showStatus('You are not logged in. Open the extension popup and log in first.', TONE.bad);
   } else {
     AUTH = shareAuth;
     const uid = document.getElementById('userId');
@@ -34,33 +42,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   // fallback button). Show why, then clear it so it doesn't persist.
   const { dispatchError } = await chrome.storage.local.get('dispatchError');
   if (dispatchError) {
-    showStatus(`${dispatchError} Review the leads below and click “Push to Master Sheet”.`, '#dc3545');
+    showStatus(`${dispatchError} Review the leads below and click “Push to my sheet”.`, TONE.bad);
     chrome.storage.local.remove('dispatchError');
   }
 
   chrome.storage.local.get(['lastExtractedLeads'], (result) => {
-    if (!result.lastExtractedLeads) return;
     let leads = [];
-    try { leads = JSON.parse(result.lastExtractedLeads).filter(l => l.email); } catch {}
-    leads.forEach(item => {
-      tbody.innerHTML += `<tr>
-        <td>${item.first_name || ''} ${item.last_name || ''}</td>
-        <td>${item.company_name || 'N/A'}</td>
-        <td>${item.job_title || 'N/A'}</td>
-        <td>${item.email}</td>
-      </tr>`;
-    });
-    if (AUTH && !dispatchError) showStatus(`Logged in as ${AUTH.name || AUTH.email}. ${leads.length} lead(s) ready.`, '#555');
+    try { leads = JSON.parse(result.lastExtractedLeads || '[]').filter(l => l.email); } catch {}
+
+    setLeadCount(leads.length);
+    if (leads.length === 0) {
+      sendBtn.disabled = true;
+      if (!dispatchError) showStatus('No scraped leads found. Run an extraction from the popup first.', TONE.info);
+      return;
+    }
+
+    tbody.innerHTML = leads.map(item => `<tr>
+        <td>${esc(`${item.first_name || ''} ${item.last_name || ''}`.trim() || '—')}</td>
+        <td>${esc(item.company_name || '—')}</td>
+        <td>${esc(item.job_title || '—')}</td>
+        <td>${esc(item.email)}</td>
+      </tr>`).join('');
+
+    if (AUTH && !dispatchError) {
+      showStatus(`Signed in as ${AUTH.name || AUTH.email} — ${leads.length} lead(s) ready to push.`, TONE.info);
+    }
   });
 });
 
+// HTML-escape: scraped names and job titles are third-party strings and go
+// straight into innerHTML.
+function esc(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 document.getElementById('sendToSheetBtn').addEventListener('click', async () => {
-  if (!AUTH) return showStatus('Log in via the extension popup first.', '#dc3545');
+  const sendBtn = document.getElementById('sendToSheetBtn');
+  if (!AUTH) return showStatus('Log in via the extension popup first.', TONE.bad);
 
   const result = await chrome.storage.local.get(['lastExtractedLeads']);
   let raw = [];
   try { raw = JSON.parse(result.lastExtractedLeads || '[]').filter(l => l.email); } catch {}
-  if (raw.length === 0) return showStatus('No leads with emails found to push.', '#dc3545');
+  if (raw.length === 0) return showStatus('No leads with emails found to push.', TONE.bad);
 
   const leads = raw.map(item => ({
     poc: `${item.first_name || ''} ${item.last_name || ''}`.trim(),
@@ -72,7 +97,8 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
 
   // The backend verifies the session, gates the account, and forwards to the
   // master sheet — the master URL never lives in the extension.
-  showStatus(`Dispatching ${leads.length} lead(s)...`, '#555');
+  sendBtn.disabled = true;
+  showStatus(`Dispatching ${leads.length} lead(s)…`, TONE.info);
   try {
     const res = await fetch(`${BACKEND_URL}/api/dispatch`, {
       method: 'POST',
@@ -82,14 +108,23 @@ document.getElementById('sendToSheetBtn').addEventListener('click', async () => 
     const d = await res.json().catch(() => ({}));
     if (!res.ok) {
       // 401 expired, 403 deactivated, 429 limit, 404 not found, 5xx server/master
-      return showStatus('Blocked: ' + (d.error || 'dispatch failed'), '#dc3545');
+      sendBtn.disabled = false;
+      return showStatus('Blocked: ' + (d.error || 'dispatch failed'), TONE.bad);
     }
     if (d.status === 'success') {
-      showStatus(`Done — routed ${d.routed}/${d.total}${d.unrouted ? `, ${d.unrouted} unrouted` : ''}.`, '#218838');
+      // The master reports duplicates separately from failures: a lead already
+      // in the sheet is a skip, not an error, and saying so avoids a pointless
+      // "why didn't all 100 land?" every time a domain is re-scraped.
+      const parts = [`routed ${d.routed}/${d.total}`];
+      if (d.duplicates) parts.push(`${d.duplicates} already in your sheet`);
+      if (d.unrouted) parts.push(`${d.unrouted} unrouted`);
+      showStatus('Done — ' + parts.join(' · ') + '.', d.unrouted ? TONE.bad : TONE.ok);
     } else {
-      showStatus('Server said: ' + (d.message || d.error || JSON.stringify(d)), '#dc3545');
+      sendBtn.disabled = false;
+      showStatus('Server said: ' + (d.message || d.error || JSON.stringify(d)), TONE.bad);
     }
   } catch {
-    showStatus('Network error reaching the backend. Try again.', '#dc3545');
+    sendBtn.disabled = false;
+    showStatus('Network error reaching the backend. Try again.', TONE.bad);
   }
 });

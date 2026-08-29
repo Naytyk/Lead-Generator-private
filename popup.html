@@ -1,45 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <style>
-    body { width: 300px; padding: 15px; font-family: sans-serif; display: flex; flex-direction: column; gap: 10px; }
-    textarea { width: 100%; height: 80px; font-size: 12px; resize: none; }
-    input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-    button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
-    #loginBtn { background-color: #007bff; color: white; }
-    #configBtn { background-color: #007bff; color: white; }
-    #extractBtn { background-color: #28a745; color: white; }
-    label { font-size: 12px; font-weight: bold; color: #555; }
-    .error { color: #dc3545; font-size: 12px; min-height: 14px; }
-    .userbar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-    .userbar a { color: #dc3545; text-decoration: none; font-weight: bold; }
-    h3 { margin: 0 0 4px; }
+    :root {
+      --bg: #08090c;
+      --surface: #111318;
+      --surface-2: #171a21;
+      --border: #24272f;
+      --text: #f4f5f7;
+      --text-dim: #9aa0ad;
+      --text-faint: #6b7280;
+      --green: #00bf6f;
+      --green-bright: #00d97e;
+      --green-soft: rgba(0, 191, 111, .13);
+      --danger: #f0553d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      width: 328px;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- brand header ---------- */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 12px;
+      background: #000;
+      border-bottom: 1px solid var(--border);
+    }
+    header img { height: 21px; display: block; }
+    .role {
+      font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--green); padding: 3px 8px; border: 1px solid rgba(0,191,111,.35);
+      border-radius: 999px; white-space: nowrap;
+    }
+
+    main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    label {
+      display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-faint); margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%; padding: 9px 10px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 13px; font-family: inherit;
+    }
+    textarea { height: 92px; resize: vertical; line-height: 1.5; }
+    input:focus, textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+    input::placeholder, textarea::placeholder { color: #4b515c; }
+
+    button {
+      width: 100%; padding: 10px 14px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: background .14s ease, opacity .14s ease;
+    }
+    #loginBtn, #configBtn { background: var(--green); color: #04150d; }
+    #loginBtn:hover, #configBtn:hover { background: var(--green-bright); }
+    #extractBtn {
+      background: var(--surface-2); color: var(--text-dim);
+      border: 1px solid var(--border); font-weight: 600; font-size: 12px; padding: 8px;
+    }
+    #extractBtn:hover { background: #1e222a; color: var(--text); }
+
+    /* ---------- signed-in bar ---------- */
+    .userbar {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 11px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none;
+           box-shadow: 0 0 0 3px var(--green-soft); }
+    #whoami { flex: 1; font-size: 12px; color: var(--text-dim); overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap; }
+    .userbar a { font-size: 11px; font-weight: 700; color: var(--text-faint); text-decoration: none; }
+    .userbar a:hover { color: var(--danger); }
+
+    .field-note { font-size: 10.5px; color: var(--text-faint); margin-top: 5px; }
+
+    .error {
+      font-size: 11.5px; color: var(--danger); min-height: 15px; line-height: 1.4;
+    }
+    .error.busy { color: var(--text-dim); }
+    .error.ok { color: var(--green); }
+
+    h1 { font-size: 15px; font-weight: 800; margin: 0; letter-spacing: -.01em; }
+    .sub { font-size: 11.5px; color: var(--text-faint); margin: -6px 0 2px; }
+
+    footer {
+      padding: 10px 16px 14px; text-align: center;
+      font-size: 9.5px; color: #3f444d;
+    }
   </style>
 </head>
+
 <body>
+  <header>
+    <img src="assets/share-wordmark.png" alt="SHARE">
+    <span class="role">Lead Gen</span>
+  </header>
+
   <!-- LOGIN VIEW -->
-  <div id="loginView" style="display:none; flex-direction: column; gap: 10px;">
-    <h3>SHARE Login</h3>
-    <label>Email</label>
-    <input type="email" id="loginEmail" placeholder="from your onboarding email">
-    <label>Password</label>
-    <input type="password" id="loginPassword" placeholder="from your onboarding email">
+  <main id="loginView" style="display:none">
+    <h1>Sign in</h1>
+    <p class="sub">Use the email and password from your SHARE onboarding email.</p>
+    <div>
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="username">
+    </div>
+    <div>
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
     <button id="loginBtn">Log in</button>
     <div id="loginError" class="error"></div>
-  </div>
+  </main>
 
   <!-- MAIN VIEW (only after login) -->
-  <div id="mainView" style="display:none; flex-direction: column; gap: 10px;">
+  <main id="mainView" style="display:none">
     <div class="userbar">
+      <span class="dot"></span>
       <span id="whoami"></span>
       <a href="#" id="logoutBtn">Log out</a>
     </div>
-    <label>Paste Domains (one per line):</label>
-    <textarea id="domainInput" placeholder="https://example.com&#10;https://another.com"></textarea>
-    <button id="configBtn">Run &amp; Get Leads</button>
-    <button id="extractBtn">View Scraped Table (manual fallback)</button>
+    <div>
+      <label for="domainInput">Target domains</label>
+      <textarea id="domainInput" placeholder="example.com&#10;another-firm.com&#10;one-per-line.com"></textarea>
+      <div class="field-note">One per line. The scrape runs in the background and opens the results for you.</div>
+    </div>
+    <button id="configBtn">Run &amp; get leads</button>
+    <button id="extractBtn">View scraped table (manual fallback)</button>
     <div id="gateMsg" class="error"></div>
-  </div>
+  </main>
+
+  <footer>Leads route to your own sheet automatically.</footer>
 
   <script src="popup.js"></script>
 </body>

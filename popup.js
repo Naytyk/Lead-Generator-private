@@ -22,17 +22,25 @@ async function fetchLeadParams() {
 
 const $ = (id) => document.getElementById(id);
 
+// The message slots are styled red by default (they are error slots). Progress
+// and success messages set a tone class so "Logging in…" doesn't read as a failure.
+function note(id, msg, tone) {
+  const el = $(id);
+  el.textContent = msg || '';
+  el.className = 'error' + (tone ? ' ' + tone : '');
+}
+
 function renderLogin(errorMsg) {
   $('loginView').style.display = 'flex';
   $('mainView').style.display = 'none';
-  $('loginError').textContent = errorMsg || '';
+  note('loginError', errorMsg);
 }
 
 function renderMain(auth) {
   $('loginView').style.display = 'none';
   $('mainView').style.display = 'flex';
-  $('whoami').textContent = `${auth.name || auth.email} (${auth.userId})`;
-  $('gateMsg').textContent = '';
+  $('whoami').textContent = `${auth.name || auth.email} · ${auth.userId}`;
+  note('gateMsg', '');
 }
 
 // Read-only activation check (does not count as a "use").
@@ -62,9 +70,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 $('loginBtn').addEventListener('click', async () => {
   const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
-  if (!email || !password) return ($('loginError').textContent = 'Enter email and password.');
+  if (!email || !password) return note('loginError', 'Enter your email and password.');
 
-  $('loginError').textContent = 'Logging in...';
+  note('loginError', 'Signing in…', 'busy');
   try {
     const res = await fetch(`${BACKEND_URL}/api/login`, {
       method: 'POST',
@@ -74,13 +82,13 @@ $('loginBtn').addEventListener('click', async () => {
     const data = await res.json();
     if (!res.ok) {
       // 403 => inactive, 401 => bad credentials
-      return ($('loginError').textContent = data.error || 'Login failed.');
+      return note('loginError', data.error || 'Login failed.');
     }
     const auth = { token: data.token, userId: data.user.id, name: data.user.name, email: data.user.email };
     await chrome.storage.local.set({ shareAuth: auth });
     renderMain(auth);
   } catch {
-    $('loginError').textContent = 'Network error connecting to backend.';
+    note('loginError', 'Could not reach the SHARE backend. Check your connection.');
   }
 });
 
@@ -97,11 +105,11 @@ $('logoutBtn').addEventListener('click', async (e) => {
 $('configBtn').addEventListener('click', async () => {
   const rawInput = $('domainInput').value;
   const domains = rawInput.split('\n').map(d => d.trim()).filter(d => d !== '');
-  if (domains.length === 0) { $('gateMsg').textContent = 'Paste at least one domain.'; return; }
+  if (domains.length === 0) return note('gateMsg', 'Paste at least one domain.');
 
   // Pull the targeting recipe from the backend (falls back to a bundled default),
   // then add the user's domains at runtime.
-  $('gateMsg').textContent = 'Preparing run…';
+  note('gateMsg', 'Preparing run…', 'busy');
   const recipe = await fetchLeadParams();
   const dynamicLeadParam = { ...recipe, company_domain: domains };
 
@@ -109,7 +117,7 @@ $('configBtn').addEventListener('click', async () => {
   // The run happens in a hidden off-screen window; results/success open on-screen.
   chrome.storage.local.set({ activeLeadParams: dynamicLeadParam, autoExtract: true }, () => {
     chrome.runtime.sendMessage({ type: 'START_OFFSCREEN_RUN' });
-    $('gateMsg').textContent = 'Running in the background — results will open automatically.';
+    note('gateMsg', `Scraping ${domains.length} domain(s) in the background — results open automatically.`, 'ok');
   });
 });
 

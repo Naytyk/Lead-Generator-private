@@ -1,24 +1,45 @@
 {
   "manifest_version": 3,
   "name": "SHARE Lead Generator",
-  "version": "3.3.0",
-  "description": "Scrapes leads via Apify and dispatches them to the SHARE master sheet. Requires SHARE login; blocks deactivated users.",
-  "permissions": ["tabs", "scripting", "storage"],
+  "version": "4.0.0",
+  "description": "Scrapes leads via Apify and dispatches them to your own SHARE sheet. Requires SHARE login; blocks deactivated accounts.",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage"
+  ],
   "host_permissions": [
     "https://console.apify.com/actors/IoSHqwTR9YGhzccez/*",
     "https://email-monitoringbackend.vercel.app/*"
   ],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "SHARE Lead Generator",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://console.apify.com/actors/IoSHqwTR9YGhzccez/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://console.apify.com/actors/IoSHqwTR9YGhzccez/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  }
 }

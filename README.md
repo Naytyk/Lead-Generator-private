@@ -10,7 +10,9 @@ teammate's daughter sheet.
 Apify actor ──scrape──► extension ──POST { userId, leads }──► Master Sheet doPost
                                                                           │ routes by userId
                                                                           ▼
-                                                                  Daughter "Emails" tab
+                                                                  Teammate's lead tab
+                                                                  (or Pending_Uploads,
+                                                                   if they stage intake)
 ```
 
 The POST payload matches what `AppScripts/master` expects:
@@ -38,16 +40,19 @@ teammate). The master router reads `lead.userId || body.userId`.
 0. Click the extension icon → **log in** with the email + password from your SHARE
    onboarding email. Deactivated accounts can't log in or dispatch. Your userId is
    resolved automatically from the login.
-1. Paste target **domains** (one per line) → **Start Extraction**.
-   The Apify input page opens and runs automatically.
-2. When the run finishes, click **View Scraped Table** to open the dispatch page.
-3. On the dispatch page fill in, once (they're remembered):
-   - **Master Web App URL** — the `…/exec` URL of your deployed master sheet web app
-     (pre-filled from the hardcoded default).
-   - **User ID** is auto-filled from your login (read-only).
-4. Click **Push to Master Sheet**. You'll see real feedback, e.g.
-   `Done — routed 100/100`, or a clear error if some leads couldn't be routed
-   (e.g. the userId isn't registered yet).
+1. Paste target **domains** (one per line) → **Run & get leads**.
+   The scrape runs in a background window and the results open on their own.
+2. If auto-dispatch fails, the dispatch table opens with the reason at the top.
+   **View scraped table** reaches it manually at any time.
+3. On the dispatch page your **User ID** is filled in from your login (read-only —
+   operators never type it).
+4. Click **Push to my sheet**. You get a real result, e.g.
+   `Done — routed 96/100 · 4 already in your sheet`, or a clear error if the batch
+   was blocked (deactivated account, usage limit, unregistered userId).
+
+   **Duplicates are not failures.** The master router de-duplicates on recipient
+   against what is already in your sheet, so re-scraping a domain you have worked
+   before can never produce a second email to the same person.
 
 ## Build / release
 
@@ -66,7 +71,8 @@ tags (`vX.Y.Z`) for release history.
 | File | Role |
 |---|---|
 | `manifest.json` | MV3 manifest, permissions, host permissions |
-| `popup.html/js` | domain entry + triggers extraction |
+| `assets/` | SHARE logo lockups + extension icons |
+| `popup.html/js` | login, domain entry, triggers extraction |
 | `content.js` | drives the Apify Monaco editor on the input page |
 | `background.js` | extracts results, and POSTs leads to the master web app |
 | `results.html/js` | dispatch UI (URL / auto-filled userId) + live status |

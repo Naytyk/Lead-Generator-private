@@ -3,6 +3,23 @@
 All notable changes to the SHARE Lead Generator extension.
 This project uses [Semantic Versioning](https://semver.org/).
 
+## [4.0.0] - 2026-08-29
+### Added
+- **SHARE brand UI** across the popup, dispatch page and success page: the SHARE
+  wordmark, extension icons at every size, and a dark theme matching the sheet's
+  control panel.
+- Dispatch results now separate **duplicates** from failures — a lead already in your
+  sheet is reported as a skip, because the master router de-duplicates on recipient.
+- Lead count in the dispatch header, and an explicit empty state when there is
+  nothing to push.
+
+### Changed
+- The dispatch page escapes scraped values before rendering them (names and job
+  titles are third-party strings going into `innerHTML`).
+- The push button disables while a dispatch is in flight, so an impatient second
+  click can't double-send a batch.
+- Popup progress messages are no longer styled as errors.
+
 ## [3.2.0] - 2026-06-17
 ### Changed
 - **Removed the shared secret.** Dispatch now authenticates via the unguessable
